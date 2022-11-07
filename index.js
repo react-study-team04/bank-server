@@ -1,3 +1,7 @@
+/**
+ * config 파일은 스터디용이라 일부러 함께 푸시했습니다.
+ */
+
 const express = require("express");
 const cors = require("express");
 const mysql = require("mysql");
@@ -8,10 +12,6 @@ const connect = mysql.createConnection(config.DATABASE);
 const jwt = require("jsonwebtoken");
 app.use(cors());
 app.use(express.json());
-app.get("/", (req, res) => {
-  console.log("inin");
-  res.send("okoko!");
-});
 
 const secretKy = "BANK";
 const alg = "HS256";
@@ -25,19 +25,24 @@ const decodeToken = (token) => {
   return jwt.verify(token, secretKy);
 };
 
+app.get("/ping", (req, res) => {
+  console.log("ping");
+  res.send("pong!");
+});
+
 app.get("/select", async (req, res) => {
   const sql = `select * from user`;
   await connect.query(sql, (err, result) => {
     try {
       if (err) {
-        console.log("eeeeeerr", err);
-        res.send("Errrrrr", err);
+        console.log(err);
+        res.send("Errr", err);
       }
 
       console.log(result);
       res.send(result);
     } catch (e) {
-      console.log("Eeeeeeedafasf", e);
+      console.log(e);
     }
   });
 });
@@ -54,8 +59,8 @@ app.post("/signin", async (req, res) => {
     `select * from user where id="${id}" and password="${password}"`,
     (err, result) => {
       if (err) {
-        console.log("eeeeeerr", err);
-        res.send("Errrrrr", err);
+        console.log(err);
+        res.send("err", err);
         return;
       }
       if (result.length !== 1) {
@@ -64,8 +69,11 @@ app.post("/signin", async (req, res) => {
         return;
       }
       console.log(result);
-
-      res.send(makeToken(result[0]));
+      res.send({
+        name: result[0].name,
+        id: result[0].id,
+        token: makeToken(result[0]),
+      });
     }
   );
 });
@@ -78,12 +86,12 @@ app.post("/signup", async (req, res) => {
     res.send("필수값이 없음.");
     return;
   }
-  const sql = `select count(*) as cnt from user where id="${req.body.id}"`;
+  const sql = `select count(*) as cnt from user where id="${id}"`;
   try {
     await connect.query(sql, (err, result) => {
       if (err) {
-        console.log("eeeeeerr", err);
-        res.send("Errrrrr", err);
+        console.log(err);
+        res.send("Err", err);
       }
 
       if (result[0].cnt === 0) {
@@ -98,8 +106,22 @@ app.post("/signup", async (req, res) => {
       }
     });
   } catch (e) {
-    console.log("EEEERr", e);
+    console.log(e);
   }
+});
+
+app.use((req, res, next) => {
+  if (!req?.headers?.token) {
+    res.send("not exist token");
+    return;
+  }
+  next();
+});
+
+app.post("/tokentest", async (req, res) => {
+  console.log(req.headers.token);
+  console.log(decodeToken(req.headers.token));
+  res.send(req.headers.token);
 });
 
 app.listen(port, () => {
