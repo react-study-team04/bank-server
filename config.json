@@ -1,0 +1,10 @@
+{
+  "DATABASE": {
+    "host": "powerball.czu4wsl1jbvi.ap-northeast-2.rds.amazonaws.com",
+    "user": "admin",
+    "password": "original123!",
+    "database": "powerball",
+    "port": "3306",
+    "multipleStatements": "true"
+  }
+}
